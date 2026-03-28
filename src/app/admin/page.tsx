@@ -24,6 +24,8 @@ export default function AdminDashboard() {
   const [sendingReply, setSendingReply] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [clearingAll, setClearingAll] = useState(false);
+  const [confirmModal, setConfirmModal] = useState<{ id: string | 'all', name?: string } | null>(null);
+  const [exitingIds, setExitingIds] = useState<string[]>([]);
   const router = useRouter();
   
   const [supabase] = useState(() => createClient());
@@ -106,31 +108,40 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   }
 
-  async function handleDeleteMessage(id: string) {
-    if (!confirm("Are you sure you want to delete this message?")) return;
-    setDeletingId(id);
-    try {
-      const { error } = await supabase.from("contact_messages").delete().eq("id", id);
-      if (error) throw error;
-      setMessages(msgs => msgs.filter(m => m.id !== id));
-    } catch (err: any) {
-      alert("Error deleting message: " + err.message);
-    } finally {
-      setDeletingId(null);
-    }
-  }
+  async function executeConfirm() {
+    if (!confirmModal) return;
+    const { id } = confirmModal;
+    setConfirmModal(null);
 
-  async function handleClearAll() {
-    if (!confirm("Are you sure you want to permanently delete ALL messages? This cannot be undone!")) return;
-    setClearingAll(true);
-    try {
-      const { error } = await supabase.from("contact_messages").delete().not("id", "is", null);
-      if (error) throw error;
-      setMessages([]);
-    } catch (err: any) {
-      alert("Error clearing messages: " + err.message);
-    } finally {
-      setClearingAll(false);
+    if (id === 'all') {
+      setClearingAll(true);
+      try {
+        const { error } = await supabase.from("contact_messages").delete().not("id", "is", null);
+        if (error) throw error;
+        setMessages([]);
+      } catch (err: any) {
+        alert("Error clearing messages: " + err.message);
+      } finally {
+        setClearingAll(false);
+      }
+    } else {
+      setDeletingId(id);
+      try {
+        const { error } = await supabase.from("contact_messages").delete().eq("id", id);
+        if (error) throw error;
+        
+        // Trigger exit animation
+        setExitingIds(prev => [...prev, id]);
+        
+        // Wait for CSS animation to finish before removing from React state
+        setTimeout(() => {
+          setMessages(msgs => msgs.filter(m => m.id !== id));
+        }, 400); 
+      } catch (err: any) {
+        alert("Error deleting message: " + err.message);
+      } finally {
+        setDeletingId(null);
+      }
     }
   }
 
@@ -193,7 +204,7 @@ export default function AdminDashboard() {
             <div className="flex items-center gap-3">
               {messages.length > 0 && (
                 <button 
-                  onClick={handleClearAll} 
+                  onClick={() => setConfirmModal({ id: 'all' })} 
                   disabled={clearingAll}
                   className="border border-red-500/30 text-red-400 font-label text-sm px-4 py-2 rounded-md hover:bg-red-500/10 transition-all flex items-center gap-2 disabled:opacity-50"
                 >
@@ -218,7 +229,10 @@ export default function AdminDashboard() {
           ) : (
             <div className="space-y-4">
               {messages.map(msg => (
-                <div key={msg.id} className={`p-6 rounded-xl border transition-all ${msg.replied ? 'bg-surface-container-lowest/50 border-green-500/20' : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30'}`}>
+                <div 
+                  key={msg.id} 
+                  className={`p-6 rounded-xl border transition-all duration-400 ease-in-out ${msg.replied ? 'bg-surface-container-lowest/50 border-green-500/20' : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30'} ${exitingIds.includes(msg.id) ? 'opacity-0 -translate-x-full scale-95 origin-left' : 'opacity-100 translate-x-0 scale-100'}`}
+                >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
                     <div className="flex items-center gap-3">
                       <div className={`w-2 h-2 rounded-full ${msg.replied ? 'bg-green-400' : 'bg-primary shadow-glow'}`}></div>
@@ -229,7 +243,7 @@ export default function AdminDashboard() {
                       {msg.replied && <span className="font-label text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Replied</span>}
                       <span className="font-label text-xs text-on-surface-variant">{formatDate(msg.created_at)}</span>
                       <button 
-                        onClick={() => handleDeleteMessage(msg.id)}
+                        onClick={() => setConfirmModal({ id: msg.id, name: msg.name })}
                         disabled={deletingId === msg.id}
                         className="text-red-400/70 hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-all ml-2"
                         title="Delete Message"
@@ -288,6 +302,39 @@ export default function AdminDashboard() {
           )}
         </GlassCard>
       </div>
+
+      {/* Custom Confirmation Modal */}
+      {confirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+          <GlassCard className="w-full max-w-md p-8 border-red-500/30 text-center space-y-6">
+            <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4 text-red-400">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+            </div>
+            
+            <h3 className="font-display text-2xl font-bold text-on-surface">WARNING</h3>
+            <p className="font-body text-on-surface-variant leading-relaxed">
+              {confirmModal.id === 'all' 
+                ? "This will permanently delete EVERY message in your secure inbox. This action is irreversible. Proceed with deletion?" 
+                : `You are about to permanently delete the message from ${confirmModal.name || 'this user'}. Proceed?`}
+            </p>
+            
+            <div className="flex items-center gap-4 justify-center pt-4">
+              <button 
+                onClick={() => setConfirmModal(null)} 
+                className="px-6 py-2.5 rounded-md font-label text-sm border border-outline-variant/30 text-on-surface hover:bg-white/5 transition-all"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={executeConfirm}
+                className="px-6 py-2.5 rounded-md font-label text-sm bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 hover:border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] transition-all"
+              >
+                Confirm Deletion
+              </button>
+            </div>
+          </GlassCard>
+        </div>
+      )}
     </div>
   );
 }
