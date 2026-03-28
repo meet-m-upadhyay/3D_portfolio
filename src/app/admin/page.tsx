@@ -22,6 +22,8 @@ export default function AdminDashboard() {
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [clearingAll, setClearingAll] = useState(false);
   const router = useRouter();
   
   const [supabase] = useState(() => createClient());
@@ -104,6 +106,34 @@ export default function AdminDashboard() {
     router.push("/admin/login");
   }
 
+  async function handleDeleteMessage(id: string) {
+    if (!confirm("Are you sure you want to delete this message?")) return;
+    setDeletingId(id);
+    try {
+      const { error } = await supabase.from("contact_messages").delete().eq("id", id);
+      if (error) throw error;
+      setMessages(msgs => msgs.filter(m => m.id !== id));
+    } catch (err: any) {
+      alert("Error deleting message: " + err.message);
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function handleClearAll() {
+    if (!confirm("Are you sure you want to permanently delete ALL messages? This cannot be undone!")) return;
+    setClearingAll(true);
+    try {
+      const { error } = await supabase.from("contact_messages").delete().not("id", "is", null);
+      if (error) throw error;
+      setMessages([]);
+    } catch (err: any) {
+      alert("Error clearing messages: " + err.message);
+    } finally {
+      setClearingAll(false);
+    }
+  }
+
   function formatDate(dateStr: string) {
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit"
@@ -160,10 +190,25 @@ export default function AdminDashboard() {
               <h2 className="font-display text-3xl text-on-surface font-bold">Inbox</h2>
               <p className="font-body text-on-surface-variant text-sm mt-1">{messages.length} message{messages.length !== 1 ? 's' : ''} received</p>
             </div>
-            <button onClick={loadMessages} className="border border-primary/30 text-primary font-label text-sm px-4 py-2 rounded-md hover:bg-primary/10 transition-all flex items-center gap-2">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-              Refresh
-            </button>
+            <div className="flex items-center gap-3">
+              {messages.length > 0 && (
+                <button 
+                  onClick={handleClearAll} 
+                  disabled={clearingAll}
+                  className="border border-red-500/30 text-red-400 font-label text-sm px-4 py-2 rounded-md hover:bg-red-500/10 transition-all flex items-center gap-2 disabled:opacity-50"
+                >
+                  {clearingAll ? (
+                    <><div className="w-4 h-4 rounded-full border-t-2 border-red-400 animate-spin"></div> Clearing...</>
+                  ) : (
+                    <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Clear All</>
+                  )}
+                </button>
+              )}
+              <button onClick={loadMessages} className="border border-primary/30 text-primary font-label text-sm px-4 py-2 rounded-md hover:bg-primary/10 transition-all flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                Refresh
+              </button>
+            </div>
           </div>
 
           {messages.length === 0 ? (
@@ -183,6 +228,18 @@ export default function AdminDashboard() {
                     <div className="flex items-center gap-3">
                       {msg.replied && <span className="font-label text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Replied</span>}
                       <span className="font-label text-xs text-on-surface-variant">{formatDate(msg.created_at)}</span>
+                      <button 
+                        onClick={() => handleDeleteMessage(msg.id)}
+                        disabled={deletingId === msg.id}
+                        className="text-red-400/70 hover:text-red-400 p-1.5 rounded-md hover:bg-red-400/10 transition-all ml-2"
+                        title="Delete Message"
+                      >
+                        {deletingId === msg.id ? (
+                          <div className="w-4 h-4 rounded-full border-t-2 border-red-400 animate-spin"></div>
+                        ) : (
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        )}
+                      </button>
                     </div>
                   </div>
                   
