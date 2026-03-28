@@ -119,6 +119,7 @@ export default function AdminDashboard() {
         const res = await fetch('/api/contact/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ id: 'all' })
         });
         if (!res.ok) throw new Error('API request failed');
@@ -134,6 +135,7 @@ export default function AdminDashboard() {
         const res = await fetch('/api/contact/delete', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
           body: JSON.stringify({ id })
         });
         if (!res.ok) throw new Error('API request failed');

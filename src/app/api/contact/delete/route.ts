@@ -22,9 +22,10 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    const { data: { session } } = await supabaseSession.auth.getSession();
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const { data, error: authError } = await supabaseSession.auth.getUser();
+    if (authError || !data?.user) {
+      console.error('Auth Error during delete API request:', authError?.message || 'No active user found');
+      return NextResponse.json({ error: 'Unauthorized', details: authError?.message }, { status: 401 });
     }
 
     // 2. Extract payload
