@@ -116,8 +116,12 @@ export default function AdminDashboard() {
     if (id === 'all') {
       setClearingAll(true);
       try {
-        const { error } = await supabase.from("contact_messages").delete().not("id", "is", null);
-        if (error) throw error;
+        const res = await fetch('/api/contact/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: 'all' })
+        });
+        if (!res.ok) throw new Error('API request failed');
         setMessages([]);
       } catch (err: any) {
         alert("Error clearing messages: " + err.message);
@@ -127,8 +131,12 @@ export default function AdminDashboard() {
     } else {
       setDeletingId(id);
       try {
-        const { error } = await supabase.from("contact_messages").delete().eq("id", id);
-        if (error) throw error;
+        const res = await fetch('/api/contact/delete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id })
+        });
+        if (!res.ok) throw new Error('API request failed');
         
         // Trigger exit animation
         setExitingIds(prev => [...prev, id]);
