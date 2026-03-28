@@ -44,8 +44,6 @@ export default function Navbar() {
   const [activeSection, setActiveSection] = useState("home");
   const lastScrollY = useRef(0);
   const isHomePage = pathname === '/';
-  
-  if (pathname.startsWith('/admin')) return null;
 
   // Mobile: auto-hide on scroll down, show on scroll up
   useEffect(() => {
@@ -106,6 +104,8 @@ export default function Navbar() {
     if (isHomePage) return activeSection === item.hash.replace('#', '');
     return pathname === item.href;
   }
+
+  if (pathname.startsWith('/admin')) return null;
 
   return (
     <>

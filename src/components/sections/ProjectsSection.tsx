@@ -34,6 +34,7 @@ export default function ProjectsSection() {
       setLoading(false);
     }
     loadProjects();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

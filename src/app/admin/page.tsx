@@ -35,6 +35,7 @@ export default function AdminDashboard() {
         loadMessages();
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
   async function loadMessages() {
