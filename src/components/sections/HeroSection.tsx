@@ -108,7 +108,7 @@ export default function HeroSection() {
       </div>
       
       {/* 3D Viewport Column */}
-      <div className="relative md:absolute md:inset-0 z-0 w-full md:w-7/12 h-[50vh] min-h-[350px] md:h-screen md:left-[41.666%] flex items-center justify-center opacity-90 mix-blend-lighten mt-8 md:mt-0">
+      <div className="hidden md:flex relative md:absolute md:inset-0 z-0 w-full md:w-7/12 h-[50vh] min-h-[350px] md:h-screen md:left-[41.666%] items-center justify-center opacity-90 mix-blend-lighten mt-8 md:mt-0">
          <div className="w-full h-full animate-float">
            <HeroCanvas />
          </div>
