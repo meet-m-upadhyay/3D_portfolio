@@ -36,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} ${manrope.variable} scroll-smooth`}>
-      <body className="font-body bg-background text-on-surface antialiased pt-0 md:pt-20 pb-24 md:pb-0">
+      <body className="font-body bg-background text-on-surface antialiased pt-0 md:pt-20 pb-24 md:pb-0 overflow-x-hidden">
         <Navbar />
         <PageTransition>
           {children}

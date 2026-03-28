@@ -33,7 +33,7 @@ export default function HeroSection() {
   }, []);
 
   return (
-    <section className="relative w-full min-h-[calc(100vh-5rem)] flex flex-col md:flex-row items-center justify-between px-6 md:px-24 bg-transparent overflow-x-hidden">
+    <section className="relative w-full min-h-[calc(100vh-5rem)] flex flex-col md:flex-row items-center justify-between px-6 md:px-24 bg-transparent">
       
       {/* Background Glows */}
       <div className="absolute top-1/2 left-1/4 -translate-y-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-tertiary/20 rounded-full pointer-events-none blur-[100px] opacity-40 z-0 hidden md:block mix-blend-screen animate-pulse-glow"></div>

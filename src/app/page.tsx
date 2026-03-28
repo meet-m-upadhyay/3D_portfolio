@@ -5,7 +5,7 @@ import ContactSection from "@/components/sections/ContactSection";
 
 export default function Home() {
   return (
-    <main className="min-h-screen selection:bg-primary selection:text-on-primary overflow-x-hidden">
+    <main className="w-full selection:bg-primary selection:text-on-primary">
       {/* Desktop: Hero only */}
       <div className="hidden md:block">
         <HeroSection />
