@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useRouter } from "next/navigation";
-import { uploadResumeAction } from "./actions";
+import { uploadResumeAction, deleteMessageAction, clearAllMessagesAction } from "./actions";
 
 type ContactMessage = {
   id: string;
@@ -116,13 +116,8 @@ export default function AdminDashboard() {
     if (id === 'all') {
       setClearingAll(true);
       try {
-        const res = await fetch('/api/contact/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ id: 'all' })
-        });
-        if (!res.ok) throw new Error('API request failed');
+        const result = await clearAllMessagesAction();
+        if (!result.success) throw new Error(result.error);
         setMessages([]);
       } catch (err: any) {
         alert("Error clearing messages: " + err.message);
@@ -132,13 +127,8 @@ export default function AdminDashboard() {
     } else {
       setDeletingId(id);
       try {
-        const res = await fetch('/api/contact/delete', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ id })
-        });
-        if (!res.ok) throw new Error('API request failed');
+        const result = await deleteMessageAction(id);
+        if (!result.success) throw new Error(result.error);
         
         // Trigger exit animation
         setExitingIds(prev => [...prev, id]);

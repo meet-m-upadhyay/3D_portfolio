@@ -66,3 +66,44 @@ export async function uploadResumeAction(formData: FormData) {
     return { success: false, error: error.message };
   }
 }
+
+export async function deleteMessageAction(id: string) {
+  const supabase = createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  // Use Service Role to ensure deletion bypasses RLS
+  const adminClient = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { get(name: string) { return cookies().get(name)?.value; }, set() {}, remove() {} } }
+  );
+
+  const { error } = await adminClient.from("contact_messages").delete().eq("id", id);
+  if (error) return { success: false, error: error.message };
+
+  return { success: true };
+}
+
+export async function clearAllMessagesAction() {
+  const supabase = createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return { success: false, error: "Unauthorized" };
+  }
+
+  const adminClient = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { cookies: { get(name: string) { return cookies().get(name)?.value; }, set() {}, remove() {} } }
+  );
+
+  const { error } = await adminClient.from("contact_messages").delete().not("id", "is", null);
+  if (error) return { success: false, error: error.message };
+
+  return { success: true };
+}
