@@ -1,0 +1,31 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #050A10;
+}
+
+body {
+  background-color: var(--background);
+  color: #dde3ec;
+  background-image: 
+    radial-gradient(circle at 10% 50%, rgba(112, 0, 255, 0.06), transparent 30%),
+    radial-gradient(circle at 90% 20%, rgba(0, 229, 255, 0.06), transparent 30%);
+  background-attachment: fixed;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+@keyframes stagger-in {
+  from { opacity: 0; transform: translateY(8px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.animate-stagger-in {
+  animation: stagger-in 0.4s ease-out forwards;
+  opacity: 0;
+}
