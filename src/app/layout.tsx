@@ -42,6 +42,7 @@ export default function RootLayout({
           {children}
         </PageTransition>
         <Footer />
+        <div id="modal-root" />
       </body>
     </html>
   );

@@ -82,7 +82,7 @@ export async function deleteMessageAction(id: string) {
     { cookies: { get(name: string) { return cookies().get(name)?.value; }, set() {}, remove() {} } }
   );
 
-  const { error } = await adminClient.from("contact_messages").delete().eq("id", id);
+  const { error } = await adminClient.from("contact_messages").update({ is_active: false }).eq("id", id);
   if (error) return { success: false, error: error.message };
 
   return { success: true };
@@ -102,7 +102,7 @@ export async function clearAllMessagesAction() {
     { cookies: { get(name: string) { return cookies().get(name)?.value; }, set() {}, remove() {} } }
   );
 
-  const { error } = await adminClient.from("contact_messages").delete().not("id", "is", null);
+  const { error } = await adminClient.from("contact_messages").update({ is_active: false }).not("id", "is", null);
   if (error) return { success: false, error: error.message };
 
   return { success: true };

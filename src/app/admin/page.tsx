@@ -1,5 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { createClient } from "@/lib/supabase/client";
 import { GlassCard } from "@/components/ui/GlassCard";
 import { useRouter } from "next/navigation";
@@ -13,6 +14,7 @@ type ContactMessage = {
   created_at: string;
   replied: boolean;
   reply_text: string | null;
+  is_active: boolean;
 };
 
 export default function AdminDashboard() {
@@ -26,11 +28,13 @@ export default function AdminDashboard() {
   const [clearingAll, setClearingAll] = useState(false);
   const [confirmModal, setConfirmModal] = useState<{ id: string | 'all', name?: string } | null>(null);
   const [exitingIds, setExitingIds] = useState<string[]>([]);
+  const [mounted, setMounted] = useState(false);
   const router = useRouter();
   
   const [supabase] = useState(() => createClient());
 
   useEffect(() => {
+    setMounted(true);
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) {
         router.push("/admin/login");
@@ -42,10 +46,23 @@ export default function AdminDashboard() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [router]);
 
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (confirmModal) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [confirmModal]);
+
   async function loadMessages() {
     const { data } = await supabase
       .from("contact_messages")
       .select("*")
+      .eq("is_active", true)
       .order("created_at", { ascending: false });
     if (data) setMessages(data);
   }
@@ -234,10 +251,12 @@ export default function AdminDashboard() {
                   className={`p-6 rounded-xl border transition-all duration-400 ease-in-out ${msg.replied ? 'bg-surface-container-lowest/50 border-green-500/20' : 'bg-surface-container-lowest border-outline-variant/20 hover:border-primary/30'} ${exitingIds.includes(msg.id) ? 'opacity-0 -translate-x-full scale-95 origin-left' : 'opacity-100 translate-x-0 scale-100'}`}
                 >
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-2 h-2 rounded-full ${msg.replied ? 'bg-green-400' : 'bg-primary shadow-glow'}`}></div>
-                      <span className="font-display text-on-surface font-bold text-lg">{msg.name}</span>
-                      <span className="text-on-surface-variant font-label text-xs">{msg.email}</span>
+                    <div className="flex flex-col md:flex-row md:items-center gap-1 md:gap-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${msg.replied ? 'bg-green-400' : 'bg-primary shadow-glow'}`}></div>
+                        <span className="font-display text-on-surface font-bold text-lg leading-none">{msg.name}</span>
+                      </div>
+                      <span className="text-on-surface-variant font-label text-xs ml-5 md:ml-0 opacity-70">{msg.email}</span>
                     </div>
                     <div className="flex items-center gap-3">
                       {msg.replied && <span className="font-label text-xs text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-0.5 rounded-full">Replied</span>}
@@ -266,15 +285,15 @@ export default function AdminDashboard() {
                     </div>
                   )}
 
-                  {/* Reply Section */}
-                  {!msg.replied && replyingTo !== msg.id && (
+                  {/* Reply Section (Hidden in production without verified domain) */}
+                  {process.env.NODE_ENV !== 'production' && !msg.replied && replyingTo !== msg.id && (
                     <button onClick={() => { setReplyingTo(msg.id); setReplyText(""); }} className="border border-primary/30 text-primary font-label text-sm px-4 py-2 rounded-md hover:bg-primary/10 transition-all flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6" /></svg>
                       Reply
                     </button>
                   )}
 
-                  {replyingTo === msg.id && (
+                  {process.env.NODE_ENV !== 'production' && replyingTo === msg.id && (
                     <div className="mt-4 space-y-3">
                       <textarea
                         value={replyText}
@@ -303,37 +322,49 @@ export default function AdminDashboard() {
         </GlassCard>
       </div>
 
-      {/* Custom Confirmation Modal */}
-      {confirmModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
-          <GlassCard className="w-full max-w-md p-8 border-red-500/30 text-center space-y-6">
-            <div className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 flex items-center justify-center mx-auto mb-4 text-red-400">
-              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-            </div>
-            
-            <h3 className="font-display text-2xl font-bold text-on-surface">WARNING</h3>
-            <p className="font-body text-on-surface-variant leading-relaxed">
-              {confirmModal.id === 'all' 
-                ? "This will permanently delete EVERY message in your secure inbox. This action is irreversible. Proceed with deletion?" 
-                : `You are about to permanently delete the message from ${confirmModal.name || 'this user'}. Proceed?`}
-            </p>
-            
-            <div className="flex items-center gap-4 justify-center pt-4">
-              <button 
-                onClick={() => setConfirmModal(null)} 
-                className="px-6 py-2.5 rounded-md font-label text-sm border border-outline-variant/30 text-on-surface hover:bg-white/5 transition-all"
-              >
-                Cancel
-              </button>
-              <button 
-                onClick={executeConfirm}
-                className="px-6 py-2.5 rounded-md font-label text-sm bg-red-500/20 text-red-400 border border-red-500/30 hover:bg-red-500/30 hover:border-red-500/50 shadow-[0_0_15px_rgba(239,68,68,0.2)] transition-all"
-              >
-                Confirm Deletion
-              </button>
-            </div>
-          </GlassCard>
-        </div>
+      {/* Custom Confirmation Modal via Portal */}
+      {confirmModal && mounted && createPortal(
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4">
+          {/* Backdrop (Static, no scroll) */}
+          <div 
+            className="fixed inset-0 bg-background/80 backdrop-blur-xl animate-in fade-in duration-300" 
+            onClick={() => setConfirmModal(null)} 
+          />
+          
+          {/* Modal Container (Truly centered) */}
+          <div className="relative w-full max-w-md animate-in zoom-in-95 fade-in duration-300 pointer-events-auto">
+            <GlassCard className="p-8 border-primary/30 text-center space-y-6 hover:translate-y-0 shadow-[0_0_50px_rgba(0,0,0,0.5)] relative">
+              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-20 h-1 bg-primary/20 rounded-full blur-sm" />
+              
+              <div className="w-16 h-16 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mx-auto mb-2 text-primary shadow-glow">
+                <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+              </div>
+              
+              <h3 className="font-display text-2xl font-bold text-on-surface tracking-tight">PROTOCOL ALERT</h3>
+              <p className="font-body text-on-surface-variant leading-relaxed text-sm">
+                {confirmModal.id === 'all' 
+                  ? "This will archive EVERY message in your inbox. This action is irreversible within the dashboard." 
+                  : `You are about to archive the message from ${confirmModal.name || 'this user'}. Proceed?`}
+              </p>
+              
+              <div className="flex items-center gap-4 justify-center pt-2">
+                <button 
+                  onClick={() => setConfirmModal(null)} 
+                  className="px-6 py-2.5 rounded-md font-label text-sm border border-outline-variant/30 text-on-surface hover:bg-white/5 transition-all w-full"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={executeConfirm}
+                  className="px-6 py-2.5 rounded-md font-label text-sm bg-primary-gradient text-white shadow-button-glow hover:shadow-[0_0_20px_rgba(0,229,255,0.5)] transition-all w-full font-bold"
+                >
+                  Confirm
+                </button>
+              </div>
+            </GlassCard>
+          </div>
+        </div>,
+        document.getElementById('modal-root')!
       )}
     </div>
   );

@@ -33,3 +33,7 @@ logs/
 
 # Vercel
 .vercel/
+
+# TypeScript Cache
+*.tsbuildinfo
+next-env.d.ts

@@ -9,7 +9,7 @@ export function GlassCard({ children, className }: { children: React.ReactNode; 
       className
     )}>
       <div className="absolute inset-0 bg-primary-gradient opacity-0 group-hover:opacity-[0.03] transition-opacity duration-500 pointer-events-none" />
-      <div className="relative z-10 w-full h-full">
+      <div className="relative z-10 w-full h-auto">
         {children}
       </div>
     </div>
