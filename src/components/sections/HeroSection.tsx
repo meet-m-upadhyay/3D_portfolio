@@ -94,7 +94,12 @@ export default function HeroSection() {
               Download Resume
             </a>
           )}
-          <a href="/projects" className="border border-primary/30 text-primary font-display font-medium px-8 py-4 rounded-md transition-all duration-300 hover:bg-primary/10 hover:border-primary/50 shadow-kinetic">
+          {/* Desktop: navigate to /projects page */}
+          <a href="/projects" className="hidden md:inline-block border border-primary/30 text-primary font-display font-medium px-8 py-4 rounded-md transition-all duration-300 hover:bg-primary/10 hover:border-primary/50 shadow-kinetic">
+            View Projects
+          </a>
+          {/* Mobile: smooth scroll to #projects section */}
+          <a href="#projects" className="md:hidden border border-primary/30 text-primary font-display font-medium px-8 py-4 rounded-md transition-all duration-300 hover:bg-primary/10 hover:border-primary/50 shadow-kinetic">
             View Projects
           </a>
         </div>
