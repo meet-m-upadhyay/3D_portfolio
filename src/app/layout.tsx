@@ -27,6 +27,9 @@ export const metadata: Metadata = {
     description: 'Building production-grade Generative AI platforms, multi-agent orchestration systems, and scalable backend architectures.',
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

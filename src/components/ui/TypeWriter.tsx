@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 const TITLES = [
   "Senior Software Engineer",
   "AI Systems Architect",
-  "LangGraph Specialist",
   "Backend Engineer",
+  "Vibe Coder"
 ];
 
 export function TypeWriter() {
