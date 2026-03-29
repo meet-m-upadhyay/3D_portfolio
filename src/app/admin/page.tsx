@@ -226,15 +226,15 @@ export default function AdminDashboard() {
                   className="border border-red-500/30 text-red-400 font-label text-sm px-4 py-2 rounded-md hover:bg-red-500/10 transition-all flex items-center gap-2 disabled:opacity-50"
                 >
                   {clearingAll ? (
-                    <><div className="w-4 h-4 rounded-full border-t-2 border-red-400 animate-spin"></div> Clearing...</>
+                    <><div className="w-4 h-4 rounded-full border-t-2 border-red-400 animate-spin"></div> <span className="hidden md:inline">Clearing...</span></>
                   ) : (
-                    <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> Clear All</>
+                    <><svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg> <span className="hidden md:inline">Clear All</span></>
                   )}
                 </button>
               )}
-              <button onClick={loadMessages} className="border border-primary/30 text-primary font-label text-sm px-4 py-2 rounded-md hover:bg-primary/10 transition-all flex items-center gap-2">
+              <button onClick={loadMessages} className="border border-primary/30 text-primary font-label text-sm px-3 md:px-4 py-2 rounded-md hover:bg-primary/10 transition-all flex items-center gap-2" title="Refresh Messages">
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                Refresh
+                <span className="hidden md:inline">Refresh</span>
               </button>
             </div>
           </div>
