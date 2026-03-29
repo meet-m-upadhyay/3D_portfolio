@@ -157,9 +157,47 @@ GITHUB_PERSONAL_ACCESS_TOKEN=your-github-token
 ---
 
 ## ✨ Customization Guide
-- **3D Models**: Keep the current models or use your AI IDE to swap them out by asking: "Help me change the hero 3D model."
-- **Colors**: Change the `accent_color` in your Supabase `projects` table; the site's glows will update automatically.
-- **Manage Data**: Visit `your-site.com/admin/login` to read messages, delete spam, and upload a new resume.
+
+### 🧍 3D Character Model (GLB)
+
+The hero section renders a custom 3D character using **React Three Fiber** and `@react-three/drei`. The model file lives at:
+
+```
+public/models/Meet_character.glb
+```
+
+#### Replacing the Character
+1. Create or download a 3D character (e.g., from [Ready Player Me](https://readyplayer.me/) or [Mixamo](https://www.mixamo.com/)).
+2. Open it in **Blender** to adjust pose, skin tone, or accessories.
+3. Export as `.glb` (**File → Export → glTF 2.0**, format: **GLB**).
+4. Replace `public/models/Meet_character.glb` with your new file (keep the same filename, or update the path in `src/components/3d/HeroCanvas.tsx`).
+
+#### Tweaking Scale, Position & Rotation
+
+All values are in `src/components/3d/HeroCanvas.tsx` inside the `Character` component:
+
+| Constant | What it does | Example |
+|---|---|---|
+| `SCALE` | Overall size of the character | `0.7` (current), increase to zoom in |
+| `POSITION_Y` | Vertical placement (negative = lower) | `-8` (current) |
+| `ROTATION_X` | Tilt forward/backward (degrees) | `10` = slight forward tilt |
+| `ROTATION_Y` | Turn left/right (degrees) | `-45` = facing right |
+
+#### Desktop vs Mobile Rendering
+
+- **Desktop (`md+`)**: Full interactive canvas with `OrbitControls` (zoom & rotate). Rendered in a dedicated viewport column beside the text.
+- **Mobile**: A small, **non-interactive** mini canvas (`MobileHeroCanvas`) is rendered beside the name. It uses `pointer-events: none` so scrolling is never blocked by the 3D viewport.
+
+Both components are exported from `src/components/3d/HeroCanvas.tsx`.
+
+---
+
+### 🎨 Colors & Theme
+- Change the `accent_color` in your Supabase `projects` table; the site's glows will update automatically.
+- Global theme tokens (primary, background, surface colors) are in `src/app/globals.css`.
+
+### 📬 Manage Data
+- Visit `your-site.com/admin/login` to read messages, delete spam, and upload a new resume.
 
 ---
 Built with ❤️ by [Meet Upadhyay](https://github.com/meet-m-upadhyay)
