@@ -1,26 +1,70 @@
 "use client";
 import { Canvas } from "@react-three/fiber";
-import { OrbitControls, useGLTF, Float, Environment, ContactShadows } from "@react-three/drei";
-import { Suspense, useEffect, useState, useMemo } from "react";
+import { OrbitControls, useGLTF, Float, Environment, ContactShadows, useProgress } from "@react-three/drei";
+import { Suspense, useEffect, useState } from "react";
 import * as THREE from "three";
 
+// --- Stylish loading overlay ---
+function LoaderOverlay({ compact = false }: { compact?: boolean }) {
+  const { progress, active } = useProgress();
+  const [show, setShow] = useState(true);
+
+  useEffect(() => {
+    if (!active && progress === 100) {
+      // Delay hiding so the fade-out animation plays
+      const t = setTimeout(() => setShow(false), 600);
+      return () => clearTimeout(t);
+    }
+  }, [active, progress]);
+
+  if (!show) return null;
+
+  return (
+    <div
+      className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-background/80 backdrop-blur-sm transition-opacity duration-500"
+      style={{ opacity: active ? 1 : 0 }}
+    >
+      {/* Pulsing silhouette icon */}
+      <div className={`${compact ? "mb-2" : "mb-6"}`}>
+        <svg
+          className={`${compact ? "w-10 h-10" : "w-16 h-16"} text-primary/60 animate-pulse`}
+          fill="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z" />
+        </svg>
+      </div>
+
+      {!compact && (
+        <>
+          {/* Progress bar track */}
+          <div className="w-40 h-1.5 bg-surface-container-high/50 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary-gradient rounded-full transition-all duration-300 ease-out shadow-[0_0_12px_rgba(0,229,255,0.5)]"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+
+          {/* Percentage text */}
+          <p className="mt-3 font-label text-xs text-on-surface-variant/70 tracking-widest uppercase">
+            Loading model… {Math.round(progress)}%
+          </p>
+        </>
+      )}
+    </div>
+  );
+}
+
 function Character() {
-  const { scene } = useGLTF("/models/Untitled.glb");
+  const { scene } = useGLTF("/models/Meet_character.glb");
 
   // --- TWEAK THESE VALUES TO FIT YOUR EXACT MODEL SIZE ---
-  // If the character is tiny, increase this number (e.g., 3, 5, or 10)
-  // If the character is huge, decrease it (e.g., 0.5, 0.1)
   const SCALE = 0.7;
-
-  // Tweak this to move the character up or down. 
-  // Lowering the Y value (e.g. -4) moves it down.
   const POSITION_Y = -8;
 
   // --- ROTATION (in degrees, converted to radians) ---
-  // Positive X rotation = tilts forward, Negative = tilts backward
-  // Positive Y rotation = turns left, Negative = turns right
-  const ROTATION_X = 10;   // e.g., 15 to tilt forward 15°
-  const ROTATION_Y = -45;   // e.g., -30 to turn right 30°
+  const ROTATION_X = 10;
+  const ROTATION_Y = -45;
 
   const toRad = (deg: number) => (deg * Math.PI) / 180;
 
@@ -41,10 +85,12 @@ export default function HeroCanvas() {
   if (!isMounted) return null;
 
   return (
-    <div className="w-full h-full min-h-[500px] lg:h-screen bg-transparent">
+    <div className="relative w-full h-full min-h-[500px] lg:h-screen bg-transparent">
+      {/* Loading overlay sits above the canvas */}
+      <LoaderOverlay />
+
       <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 10], fov: 50 }}>
         <Suspense fallback={null}>
-          {/* Custom Lighting Environment instead of Stage to prevent re-scaling glitches on refresh */}
           <Environment preset="city" />
           <ambientLight intensity={0.6} />
           <directionalLight position={[5, 10, 5]} intensity={1.5} />
@@ -53,7 +99,6 @@ export default function HeroCanvas() {
             <Character />
           </Float>
 
-          {/* Ground shadow plane positioned beneath the floating model */}
           <ContactShadows
             position={[0, -3.2, 0]}
             opacity={0.7}
@@ -86,7 +131,9 @@ export function MobileHeroCanvas() {
   if (!isMounted) return null;
 
   return (
-    <div className="w-[140px] h-[180px] pointer-events-none flex-shrink-0">
+    <div className="relative w-[140px] h-[180px] pointer-events-none flex-shrink-0">
+      <LoaderOverlay compact />
+
       <Canvas dpr={[1, 1.5]} camera={{ position: [0, 0, 10], fov: 50 }}>
         <Suspense fallback={null}>
           <Environment preset="city" />
@@ -102,4 +149,4 @@ export function MobileHeroCanvas() {
   );
 }
 
-useGLTF.preload("/models/Untitled.glb");
+useGLTF.preload("/models/Meet_character.glb");

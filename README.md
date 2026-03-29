@@ -163,14 +163,14 @@ GITHUB_PERSONAL_ACCESS_TOKEN=your-github-token
 The hero section renders a custom 3D character using **React Three Fiber** and `@react-three/drei`. The model file lives at:
 
 ```
-public/models/Untitled.glb
+public/models/Meet_character.glb
 ```
 
 #### Replacing the Character
 1. Create or download a 3D character (e.g., from [Ready Player Me](https://readyplayer.me/) or [Mixamo](https://www.mixamo.com/)).
 2. Open it in **Blender** to adjust pose, skin tone, or accessories.
 3. Export as `.glb` (**File → Export → glTF 2.0**, format: **GLB**).
-4. Replace `public/models/Untitled.glb` with your new file (keep the same filename, or update the path in `src/components/3d/HeroCanvas.tsx`).
+4. Replace `public/models/Meet_character.glb` with your new file (keep the same filename, or update the path in `src/components/3d/HeroCanvas.tsx`).
 
 #### Tweaking Scale, Position & Rotation
 
